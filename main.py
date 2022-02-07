@@ -22,7 +22,7 @@ def draw_task(bound, circles_list):
 
         screen.fill(background_colour)
 
-        pygame.draw.rect(screen, rect_color, (bound[0], bound[2], bound[1], bound[3]) )
+        pygame.draw.rect(screen, rect_color, (bound[0], bound[1], bound[2], bound[3]) )
 
         for circle in circles_list:
             pygame.draw.circle(screen, circle_color, (circle['x'], circle['y']), circle['radius'])
@@ -39,25 +39,74 @@ def get_center(coords):
 
 
 def get_bounds(circles_list):
-    # [minX,maxX,minY,maxY]
-    bounds = [float('inf'),-float('inf'), float('inf'),-float('inf')]
+    # [minX,minY,maxX,maxY]
+    bounds = [float('inf'),float('inf'), -float('inf'),-float('inf')]
 
     for circle in circles_list:
         if circle['x'] - circle['radius'] < bounds[0]: bounds[0] = circle['x'] - circle['radius']
-        if circle['x'] + circle['radius'] > bounds[1]: bounds[1] = circle['x'] + circle['radius']
-        if circle['y'] - circle['radius'] < bounds[2]: bounds[2] = circle['y'] - circle['radius']
+        if circle['y'] - circle['radius'] < bounds[1]: bounds[1] = circle['y'] - circle['radius']
+        if circle['x'] + circle['radius'] > bounds[2]: bounds[2] = circle['x'] + circle['radius']
         if circle['y'] + circle['radius'] > bounds[3]: bounds[3] = circle['y'] + circle['radius']
 
     return bounds
 
 
+def intersection_area(rect1, rect2):
+    left = max(rect1[0], rect2[0])
+    top = min(rect1[3], rect2[3])
+    right = min(rect1[2], rect2[2])
+    bottom = max(rect1[1], rect2[1])
+
+    width = right - left
+    height = top - bottom
+
+    if width < 0 or height < 0:
+        return 0
+
+    return width * height
+
+
+def get_squares_from_circles(circles_list):
+    squares = []
+
+    for circle in circles_list:
+        rect = [None,None,None,None]
+        rect[0] = circle['x'] - circle['radius']
+        rect[1] = circle['y'] - circle['radius']
+        rect[2] = circle['x'] + circle['radius']
+        rect[3] = circle['y'] + circle['radius']
+
+        squares.append(rect)
+
+    return squares
+
+
+def get_bounds_sqr(squares):
+    # [minX,minY,maxX,maxY]
+    bounds = [float('inf'), float('inf'), -float('inf'), -float('inf')]
+
+    for square in squares:
+        if square[0] < bounds[0]: bounds[0] = square[0]
+        if square[1] < bounds[1]: bounds[1] = square[1]
+        if square[2] > bounds[2]: bounds[2] = square[2]
+        if square[3] > bounds[3]: bounds[3] = square[3]
+
+    return bounds
+
 
 def resolve_task(circles_list):
     geometric_center = get_center([ (circle["x"], circle["y"]) for circle in circles_list ])
     bounds = get_bounds(circles_list)
+
     draw_task(bounds, circles_list)
 
+    squares = get_squares_from_circles(circles_list)
 
+    #генетический алгоритм должен определить как заполнить группы
+    # пример groups = [[0],[1,2]] [[0, 1],[2]] [[0, 2],[1]]
+    # нужен метод который сможет найти общую площадь
+
+    groups = [[],[]]
 
 
 def run_test(test):
